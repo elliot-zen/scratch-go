@@ -2,15 +2,14 @@ SHELL := /bin/sh
 .DEFAULT_GOAL := check
 .DELETE_ON_ERROR:
 
-GO_VERSION := 1.27.3
 STATICCHECK_VERSION := v0.8.2
-export GOTOOLCHAIN := local
 GO ?= go
 GOFMT ?= $(shell "$(GO)" env GOROOT)/bin/gofmt
 # Replace this default with the project's primary service name during initialization.
 SERVICE ?= service
 VERSION ?= dev
-TOOLS_DIR := .tools/go$(GO_VERSION)
+# Separate installed tools by the toolchain selected for this module.
+TOOLS_DIR = .tools/$(shell "$(GO)" env GOVERSION)
 STATICCHECK := $(TOOLS_DIR)/staticcheck-$(STATICCHECK_VERSION)/staticcheck
 
 .PHONY: build run test check fmt
@@ -18,7 +17,7 @@ STATICCHECK := $(TOOLS_DIR)/staticcheck-$(STATICCHECK_VERSION)/staticcheck
 # Shared prerequisite checks, expanded only when a public target runs.
 define guard
 	@test -f go.mod || { printf '%s\n' 'Run from the initialized Go module root.' >&2; exit 1; }
-	@actual="$$("$(GO)" env GOVERSION)" && test "$$actual" = 'go$(GO_VERSION)' || { printf '%s\n' 'Go toolchain mismatch: expected go$(GO_VERSION).' >&2; exit 1; }
+	@"$(GO)" env GOVERSION > /dev/null
 endef
 
 build:
